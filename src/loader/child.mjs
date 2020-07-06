@@ -1,12 +1,12 @@
 import se from 'serialize-error';
 
-process.on('message', ({ ticket, serverEntry, body, requestId }) => {
+process.on('message', ({ ticket, serverEntry, buffer, requestId }) => {
   if (requestId) {
     import(`${serverEntry}?__iep=${ticket}`)
       .then((app) =>
         process.send({
           responseId: requestId,
-          buffer: (app.default || app)(body),
+          buffer: (app.default || app)(buffer),
         })
       )
       .catch((err) => {

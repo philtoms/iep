@@ -1,5 +1,5 @@
 import path from 'path';
-import defaultLog from './utils/local-log.mjs';
+import defaultLog from './utils/local-log';
 
 const rootPath = process.env.PWD;
 
@@ -9,12 +9,12 @@ const serverEntry = path.resolve(rootPath, 'src/app/index.js');
 // default entry point for client-side script
 const clientEntry = path.resolve(rootPath, 'src/index.js');
 
-// default cache persistance module / package path
-// const cacheModule = './utils/local-cache.js';
-
 // default persist file url for iep cache persistance
-const cachePersistUrl =
-  process.env.PERSIST_PATH || path.resolve(rootPath, 'iep-cache');
+const cachePersistUrl = path.resolve(rootPath, 'iep-cache');
+
+// default entity persistance
+const iepMapPersistance = 'entity';
+// const srcMapPersistance = 'key';
 
 export default ({
   iep,
@@ -30,8 +30,8 @@ export default ({
     ...iep,
   },
   'iep-cache': {
-    // 'cache-module': cacheModule,
     'cache-persist-url': cachePersistUrl,
+    'iepMap-persistance': iepMapPersistance,
     ...cache,
   },
   errors: {

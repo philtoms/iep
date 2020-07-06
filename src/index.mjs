@@ -1,26 +1,22 @@
-import cache from 'iep-cache';
-
-import importer from './importer.mjs';
-import renderer from './renderer.mjs';
-import proxy from './proxy.mjs';
-
-import stageFilter from './utils/stage-filter.mjs';
+import importer from './importer';
+import renderer from './renderer';
+import proxy from './proxy';
+import loader, { restart } from './loader';
+import config from './config';
+import stageFilter from './stage-filter';
 
 export default (config) => {
-  const iepMap = cache('iepMap', config['iep-cache']);
+  const [iepMap, iepSrc, worker] = loader(config);
   const filter = stageFilter(iepMap, config.stages);
 
   return {
     filter,
     iepMap,
-    render: renderer(config, filter),
+    render: renderer(worker, filter),
     proxy: proxy(config, filter),
-    imports: importer(config, filter),
+    imports: importer(config, filter, iepSrc),
   };
 };
 
-import {restart} from './service.mjs'
-import config from './config.mjs';
-
-export {restart}
-export {config}
+export { restart };
+export { config };

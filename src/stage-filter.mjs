@@ -19,9 +19,9 @@ export default (iepMap, stages) => {
           };
         }
       }
-
       // is there an indexed iep?
-      return api.index(indexType) || {};
+      const fallthrough = (req.get('accept') || '').includes('html');
+      return (fallthrough && api.index(indexType, req)) || {};
     },
 
     ticket: async (ticket) => {
@@ -33,20 +33,20 @@ export default (iepMap, stages) => {
           stage: iep.stage,
         };
       }
-
-      // is there an indexed iep?
-      return api.index(indexType) || {};
+      return {};
     },
 
-    index: async (type) => {
+    index: async (type = 'head') => {
       // only head supported as yet
-      if (indexType === 'head') {
+      if (indexType === type) {
         const iep = (await iepMap.get(index))[0];
-        return {
-          iep,
-          ticket: iep.ticket,
-          stage: index,
-        };
+        if (iep) {
+          return {
+            iep,
+            ticket: iep.ticket,
+            stage: index,
+          };
+        }
       }
       return {};
     },

@@ -1,12 +1,11 @@
 import fs from 'fs';
 import { dirname } from 'path';
 import cache, { IEP_STR } from 'iep-cache';
-import resolve from './resolver.mjs';
-import cookies from './utils/cookies.mjs';
+import resolver from './resolver';
+import cookies from './utils/cookies';
 
-export default ({ iep: { clientEntry }, log, errors }, filter) => {
+export default ({ iep: { clientEntry }, log, errors }, filter, iepSrc) => {
   const srcPath = dirname(clientEntry);
-  const iepSrc = cache('iepSrc');
   const parseCookies = cookies();
 
   return async (req, res) => {
@@ -26,8 +25,9 @@ export default ({ iep: { clientEntry }, log, errors }, filter) => {
       }
 
       const source = fs.readFileSync(pathname, 'utf8');
-      resolve(source, ticket, pathname, iep.map).then((source) => {
+      resolver(source, pathname, iep.map).then((source) => {
         res.send(source);
+        iepSrc.set(cacheKey, { [IEP_STR]: source });
       });
     } catch (err) {
       log.error('ts:resolve', err);

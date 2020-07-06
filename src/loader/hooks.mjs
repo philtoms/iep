@@ -1,22 +1,11 @@
-// Note: The loaders API is being redesigned.
-//    This hook may disappear or its signature may change.
-//    Do not rely on the API described below.
-// https://nodejs.org/api/esm.html#esm_code_resolve_code_hook
 import path from 'path';
 import cache, { IEP_STR } from 'iep-cache';
-import resolver from './resolver.mjs';
-import { subscribe } from './pubsub.mjs';
+import resolver from '../resolver';
 
 const root = process.env.PWD;
 
-// cache options will be loaded in the iep-cache module scope, but overload
-// any defaults here.
-const iepMap = cache('iepMap');
-const iepSrc = cache('iepSrc', { 'cache-persist-url': 'false' });
-
-// pub-sub: subscribe to published entity updates
-subscribe('iepMap', iepMap.update, process);
-subscribe('iepSrc', iepSrc.update, process);
+const iepMap = cache('iepMap', { 'iepMap-persistance': 'false' });
+const iepSrc = cache('iepSrc', { 'iepSrc-persistance': 'false' });
 
 const extractIEP = (specifier, protocol = '') => {
   const { pathname, searchParams } = new URL(protocol + specifier);
@@ -40,7 +29,9 @@ export async function resolve(specifier, context, defaultResolve) {
   const { url } = defaultResolve(specifier, context, defaultResolve);
 
   // propagate ticket state through the dependency tree
-  return { url: ticket ? `${url}?__iep=${ticket}` : url };
+  return {
+    url: ticket && url.startsWith('file://') ? `${url}?__iep=${ticket}` : url,
+  };
 }
 
 export async function getSource(url, context, defaultGetSource) {
@@ -55,6 +46,7 @@ export async function getSource(url, context, defaultGetSource) {
         source,
       };
     }
+
     const src = iep.map.imports[pathname];
     if (src) {
       url = 'file:///' + src;
@@ -77,7 +69,8 @@ export async function transformSource(source, context, defaultTransformSource) {
       };
     }
 
-    source = await resolver(source, ticket, pathname, iep.map);
+    source = await resolver(source, pathname, iep.map, url);
+    iepSrc.set(cacheKey, { [IEP_STR]: source });
 
     return {
       source,
