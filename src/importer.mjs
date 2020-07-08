@@ -1,14 +1,14 @@
 import fs from 'fs';
 import { dirname } from 'path';
-import cache, { IEP_STR } from 'iep-cache';
+import { IEP_STR } from 'iep-cache';
 import resolver from './resolver';
 import cookies from './utils/cookies';
 
-export default ({ iep: { clientEntry }, log, errors }, filter, iepSrc) => {
+export default ({ iep: { clientEntry } }, filter, iepSrc) => {
   const srcPath = dirname(clientEntry);
   const parseCookies = cookies();
 
-  return async (req, res) => {
+  return async (req, res, next) => {
     try {
       res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
 
@@ -30,8 +30,8 @@ export default ({ iep: { clientEntry }, log, errors }, filter, iepSrc) => {
         iepSrc.set(cacheKey, { [IEP_STR]: source });
       });
     } catch (err) {
-      log.error('ts:resolve', err);
-      res.status(500).send(errors.PROD_500);
+      err.message = `iep:import-map - ${err.message}`;
+      next(err);
     }
   };
 };

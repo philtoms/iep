@@ -2,9 +2,7 @@ import httpProxy from 'http-proxy';
 
 export default (config, filter) => {
   const {
-    log,
     iep: { proxy: options },
-    errors,
   } = config;
 
   const proxy1 = httpProxy.createProxyServer({
@@ -57,8 +55,7 @@ export default (config, filter) => {
 
       return proxy2.web(req, res, options.target);
     } catch (err) {
-      if (err.message !== '500') log.error('iep:proxy', err);
-      res.status(500).send(errors.PROD_500);
+      next(err);
     }
   };
 };

@@ -1,6 +1,4 @@
 import path from 'path';
-import defaultLog from './utils/local-log';
-
 const rootPath = process.env.PWD;
 
 // default entry point for server-side script
@@ -16,14 +14,7 @@ const cachePersistUrl = path.resolve(rootPath, 'iep-cache');
 const iepMapPersistance = 'entity';
 // const srcMapPersistance = 'key';
 
-export default ({
-  iep,
-  'iep-cache': cache,
-  errors,
-  log = defaultLog,
-  ...rest
-}) => ({
-  log,
+export default ({ iep, 'iep-cache': cache, ...rest }) => ({
   iep: {
     clientEntry,
     serverEntry,
@@ -33,10 +24,6 @@ export default ({
     'cache-persist-url': cachePersistUrl,
     'iepMap-persistance': iepMapPersistance,
     ...cache,
-  },
-  errors: {
-    PROD_500: 'Sorry, something went wrong.',
-    ...errors,
   },
   ...rest,
 });

@@ -44,7 +44,7 @@ export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
       return new Promise((resolve, reject) => {
         worker.on('message', ({ responseId, buffer, err }) => {
           if (err) {
-            reject(se.deserializeError(JSON.parse(err)));
+            return reject(se.deserializeError(JSON.parse(err)));
           }
           if (requestId === responseId) {
             resolve(buffer);
