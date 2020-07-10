@@ -1,7 +1,7 @@
 import test from 'ava';
-import resolve from './index.mjs';
+import resolve from '../index.mjs';
 
-import 'fs?__fake=./fs.fake.mjs';
+import 'fs?__fake=../fakes/fs.mjs';
 
 const source = `
 import 'packaged'

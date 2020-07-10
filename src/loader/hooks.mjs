@@ -1,6 +1,6 @@
 import path from 'path';
 import cache, { IEP_STR } from 'iep-cache';
-import resolver from '../resolver';
+import resolver from '../resolver/index.js';
 
 const root = process.env.PWD;
 

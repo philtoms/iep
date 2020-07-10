@@ -2,7 +2,7 @@
   "name": "iep",
   "version": "1.0.0",
   "description": "Isolated entry point for node esm applications",
-  "main": "src/index.mjs",
+  "main": "index.mjs",
   "author": "Phil Toms phil.toms@hotmail.co.uk",
   "license": "MIT",
   "scripts": {

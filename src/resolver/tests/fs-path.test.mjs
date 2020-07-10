@@ -1,5 +1,5 @@
 import test from 'ava';
-import fsPath from './fs-path';
+import fsPath from '../fs-path';
 
 test('resolved from root and path', (t) => {
   t.is(fsPath('path/to/file', '/root'), '/root/path/to/file');

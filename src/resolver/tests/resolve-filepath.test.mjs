@@ -5,7 +5,7 @@ const fake = (exp, isFile = true) => {
   const statSync = `export const statSync = () => ({isFile: ()=>${isFile}})`;
 
   return import(`fs?__fake=${existsSync};${statSync}`)
-    .then(() => import('./resolve-filepath?__fake=reload'))
+    .then(() => import('../resolve-filepath?__fake=reload'))
     .then((module) => module.default);
 };
 

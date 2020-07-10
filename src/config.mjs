@@ -1,4 +1,5 @@
 import path from 'path';
+
 const rootPath = process.env.PWD;
 
 // default entry point for server-side script

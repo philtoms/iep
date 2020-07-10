@@ -1,8 +1,8 @@
 import fs from 'fs';
 import { dirname } from 'path';
 import { IEP_STR } from 'iep-cache';
-import resolver from './resolver';
-import cookies from './utils/cookies';
+import resolver from './resolver/index.mjs';
+import cookies from './cookies.mjs';
 
 export default ({ iep: { clientEntry } }, filter, iepSrc) => {
   const srcPath = dirname(clientEntry);

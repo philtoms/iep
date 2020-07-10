@@ -1,8 +1,8 @@
 import path from 'path';
 import { init, parse } from 'es-module-lexer/dist/lexer';
 
-import fsPath from './fs-path';
-import resolveFile from './resolve-filepath';
+import fsPath from './fs-path.mjs';
+import resolveFile from './resolve-filepath.mjs';
 
 const srcDir = process.env.SRC || process.cwd() + '/src';
 
