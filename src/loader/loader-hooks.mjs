@@ -1,8 +1,7 @@
 import path from 'path';
 import cache, { IEP_STR } from 'iep-cache';
-import resolver from '../resolver/index.js';
-
-const root = process.env.PWD;
+import resolver from '../resolver/index.mjs';
+import resolveImportMap from '../resolver/resolve-import-map.mjs';
 
 const iepMap = cache('iepMap', { 'iepMap-persistance': 'false' });
 const iepSrc = cache('iepSrc', { 'iepSrc-persistance': 'false' });
@@ -16,14 +15,20 @@ const extractIEP = (specifier, protocol = '') => {
 export async function resolve(specifier, context, defaultResolve) {
   let ticket;
   if (specifier.includes('__iep=')) {
-    [specifier, ticket] = extractIEP(specifier, 'file://');
+    [specifier, ticket] = extractIEP(specifier, 'file:///');
   } else if (context.parentURL && context.parentURL.includes('__iep=')) {
     [, ticket] = extractIEP(context.parentURL);
   }
 
-  // fill in missing root for import-mapped specifiers of shape '/relative/path'
-  if (ticket && specifier.startsWith('/') && !specifier.startsWith(root)) {
-    specifier = path.resolve(root, specifier.substr(1));
+  if (ticket) {
+    const iep = await iepMap.get(ticket);
+    specifier = resolveImportMap(iep.map, specifier)[0] || specifier;
+
+    const root = process.env.APP_ROOT || process.env.PWD;
+    // fill in missing root for import-mapped specifiers of shape '/relative/path'
+    if (specifier.startsWith('/') && !specifier.startsWith(root)) {
+      specifier = path.resolve(root, specifier.substr(1));
+    }
   }
 
   const { url } = defaultResolve(specifier, context, defaultResolve);
@@ -40,16 +45,11 @@ export async function getSource(url, context, defaultGetSource) {
     const cacheKey = `${ticket}.${pathname}`;
 
     const iep = await iepMap.get(ticket);
-    const { timestamp, [IEP_STR]: source } = await iepSrc.get(cacheKey, iep);
+    const { timestamp, [IEP_STR]: source } = await iepSrc.get(cacheKey);
     if (timestamp > iep.timestamp) {
       return {
         source,
       };
-    }
-
-    const src = iep.map.imports[pathname];
-    if (src) {
-      url = 'file:///' + src;
     }
   }
   // Defer to Node.js for all other URLs.
@@ -60,8 +60,10 @@ export async function transformSource(source, context, defaultTransformSource) {
   const { url } = context;
   if (url.includes('__iep=')) {
     const [pathname, ticket] = extractIEP(url);
-    const iep = await iepMap.get(ticket);
     const cacheKey = `${ticket}.${pathname}`;
+
+    // take latest source as-is
+    const iep = await iepMap.get(ticket);
     const { timestamp } = await iepSrc.get(cacheKey);
     if (timestamp > iep.timestamp) {
       return {

@@ -8,8 +8,8 @@ import cache from 'iep-cache';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const workerService = path.resolve(__dirname, 'child');
-const loaderHooks = path.resolve(__dirname, 'hooks');
+const workerService = path.resolve(__dirname, 'child-process.mjs');
+const loaderHooks = path.resolve(__dirname, 'loader-hooks.mjs');
 
 const serviceMap = {};
 const callbacks = [];
@@ -73,7 +73,7 @@ export const restart = (ticket, conf) => {
         loaderHooks,
         '--experimental-specifier-resolution=node',
         // '--no-warnings',
-        // '--inspect-brk=localhost:9222',
+        '--inspect-brk=localhost:9222',
       ],
     }
   );
