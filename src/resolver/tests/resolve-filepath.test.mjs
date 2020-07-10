@@ -19,12 +19,12 @@ test.serial('resolved from implied index.mjs', async (t) => {
   t.is(resolve('/'), '/index.mjs');
 });
 
-test.serial('resolved js from path', async (t) => {
+test.serial('resolved implied js from path', async (t) => {
   const resolve = await fake('/path.js');
   t.is(resolve('/path'), '/path.js');
 });
 
-test.serial('resolved mjs from path', async (t) => {
+test.serial('resolved implied mjs from path', async (t) => {
   const resolve = await fake('/path.mjs');
   t.is(resolve('/path'), '/path.mjs');
 });
