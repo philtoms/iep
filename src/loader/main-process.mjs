@@ -13,20 +13,15 @@ const loaderHooks = path.resolve(__dirname, 'loader-hooks.mjs');
 
 const serviceMap = {};
 const callbacks = [];
-const workers = {
+const pubsub = {
   send: (message) =>
     Object.values(serviceMap).forEach((worker) => worker.send(message)),
   on: (message, cb) => callbacks.push(cb),
 };
 
-// this is a worker process
-if (process.argv.includes(workerService)) {
-  serviceMap.process = process;
-}
-
 export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
-  const iepMap = cache('iepMap', conf, workers);
-  const iepSrc = cache('iepSrc', conf, workers);
+  const iepMap = cache('iepMap', { ...conf, pubsub });
+  const iepSrc = cache('iepSrc', { ...conf, pubsub });
 
   let workerSequenceNo = 1;
   return [
