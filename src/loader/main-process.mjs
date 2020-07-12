@@ -4,40 +4,38 @@ import path, { dirname } from 'path';
 import se from 'serialize-error';
 
 import cache from 'iep-cache';
+import pubsub from 'iep-pubsub';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const workerService = path.resolve(__dirname, 'child-process.mjs');
+const childProcess = path.resolve(__dirname, 'child-process.mjs');
 const loaderHooks = path.resolve(__dirname, 'loader-hooks.mjs');
 
 const serviceMap = {};
-const callbacks = [];
-const pubsub = {
-  send: (message) =>
-    Object.values(serviceMap).forEach((worker) => worker.send(message)),
-  on: (message, cb) => callbacks.push(cb),
-};
+
+const { publish, once } = pubsub();
 
 export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
-  const iepMap = cache('iepMap', { ...conf, pubsub });
-  const iepSrc = cache('iepSrc', { ...conf, pubsub });
+  const iepMap = cache('iepMap', conf);
+  const iepSrc = cache('iepSrc', conf);
 
-  let workerSequenceNo = 1;
+  let requestSequenceNo = 1;
   return [
     iepMap,
     iepSrc,
     (ticket, buffer) => {
-      const worker = serviceMap[ticket] || restart(ticket, conf);
-      const requestId = workerSequenceNo++;
-      worker.send({
+      const child = serviceMap[ticket] || worker(ticket, conf);
+      const { publish } = pubsub(child);
+      const requestId = requestSequenceNo++;
+      publish('render', {
         ticket,
         serverEntry,
         buffer,
         requestId,
       });
       return new Promise((resolve, reject) => {
-        worker.on('message', ({ responseId, buffer, err }) => {
+        once('render', (channel, { responseId, buffer, err }) => {
           if (err) {
             return reject(se.deserializeError(JSON.parse(err)));
           }
@@ -50,13 +48,16 @@ export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
   ];
 };
 
-export const restart = (ticket, conf) => {
+export const restart = (ticket) => {
   if (serviceMap[ticket]) {
     serviceMap[ticket].kill();
+    Reflect.deleteProperty(serviceMap, ticket);
   }
+};
 
-  const worker = fork(
-    workerService,
+const worker = (ticket, conf) => {
+  const child = fork(
+    childProcess,
     [
       `--cache-lazy-load=true`,
       `--cache-persist-url=${conf['cache-persist-url']}`,
@@ -67,17 +68,19 @@ export const restart = (ticket, conf) => {
         '--experimental-loader',
         loaderHooks,
         '--experimental-specifier-resolution=node',
+        // '--trace-warnings',
         // '--no-warnings',
-        '--inspect-brk=localhost:9222',
+        // '--inspect-brk=localhost:9222',
       ],
     }
   );
-  worker.on('message', (message) => {
-    callbacks.forEach((cb) => cb(message));
-    if (message.entity) {
-      workers.send(message);
-    }
-  });
 
-  return (serviceMap[ticket] = worker);
+  const { subscribe } = pubsub(child);
+
+  // broadcast to all siblings
+  subscribe('render', publish);
+  subscribe('iepMap', publish);
+  subscribe('iepSrc', publish);
+
+  return (serviceMap[ticket] = child);
 };

@@ -13,6 +13,7 @@
     "es-module-lexer": "^0.3.18",
     "http-proxy": "^1.18.1",
     "iep-cache": "philtoms/iep-cache",
+    "iep-pubsub": "philtoms/iep-pubsub",
     "serialize-error": "^7.0.1"
   },
   "devDependencies": {
