@@ -1,10 +1,7 @@
 import se from 'serialize-error';
 import pubsub from 'iep-pubsub';
 
-const render = (publish) => (
-  channel,
-  { ticket, serverEntry, buffer, requestId }
-) => {
+const render = (publish) => ({ ticket, serverEntry, buffer, requestId }) => {
   if (requestId) {
     const specifier = `${serverEntry}${
       serverEntry.includes('?') ? '&' : '?'
@@ -12,13 +9,13 @@ const render = (publish) => (
 
     return import(specifier)
       .then((app) => {
-        publish('render', {
+        publish(ticket, {
           responseId: requestId,
           buffer: (app.default || app)(buffer),
         });
       })
       .catch((err) => {
-        publish('render', {
+        publish(ticket, {
           responseId: requestId,
           err: JSON.stringify(se.serializeError(err)),
         });
@@ -26,7 +23,7 @@ const render = (publish) => (
   }
 };
 
-export default (process) => {
+export default (process, ticket) => {
   const { publish, subscribe } = pubsub(process);
-  subscribe('render', render(publish));
+  subscribe(ticket, render(publish));
 };

@@ -14,8 +14,6 @@ const loaderHooks = path.resolve(__dirname, 'loader-hooks.mjs');
 
 const serviceMap = {};
 
-const { publish, once } = pubsub();
-
 export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
   const iepMap = cache('iepMap', conf);
   const iepSrc = cache('iepSrc', conf);
@@ -26,16 +24,16 @@ export default ({ iep: { serverEntry }, 'iep-cache': conf }) => {
     iepSrc,
     (ticket, buffer) => {
       const child = serviceMap[ticket] || worker(ticket, conf);
-      const { publish } = pubsub(child);
+      const { publish, once } = pubsub(child);
       const requestId = requestSequenceNo++;
-      publish('render', {
+      publish(ticket, {
         ticket,
         serverEntry,
         buffer,
         requestId,
       });
       return new Promise((resolve, reject) => {
-        once('render', (channel, { responseId, buffer, err }) => {
+        once(ticket, ({ responseId, buffer, err }) => {
           if (err) {
             return reject(se.deserializeError(JSON.parse(err)));
           }
@@ -59,6 +57,7 @@ const worker = (ticket, conf) => {
   const child = fork(
     childProcess,
     [
+      `--ticket=${ticket}`,
       `--cache-lazy-load=true`,
       `--cache-persist-url=${conf['cache-persist-url']}`,
       `--iepMap-persistance=${conf['iepMap-persistance']}`,
@@ -74,13 +73,6 @@ const worker = (ticket, conf) => {
       ],
     }
   );
-
-  const { subscribe } = pubsub(child);
-
-  // broadcast to all siblings
-  subscribe('render', publish);
-  subscribe('iepMap', publish);
-  subscribe('iepSrc', publish);
 
   return (serviceMap[ticket] = child);
 };

@@ -1,2 +1,8 @@
 import worker from './worker.mjs';
-worker(process);
+
+const args = (process.argv || []).reduce((acc, arg) => {
+  const [name, value] = arg.split('=');
+  return { ...acc, [name.replace('--', '')]: value };
+}, {});
+
+worker(process, args.ticket);
