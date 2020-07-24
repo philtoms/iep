@@ -1,6 +1,5 @@
 const cache = {};
 
-export const IEP_STR = 'source';
 export default (key, values) => {
   cache[key] = values;
   return {

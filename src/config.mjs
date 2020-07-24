@@ -13,7 +13,7 @@ const cachePersistUrl = path.resolve(rootPath, 'iep-cache');
 
 // default entity persistance
 const iepMapPersistance = 'entity';
-// const srcMapPersistance = 'key';
+const iepSrcPersistance = false;
 
 export default ({ iep, 'iep-cache': cache, ...rest }) => ({
   iep: {
@@ -22,8 +22,10 @@ export default ({ iep, 'iep-cache': cache, ...rest }) => ({
     ...iep,
   },
   'iep-cache': {
-    'cache-persist-url': cachePersistUrl,
-    'iepMap-persistance': iepMapPersistance,
+    '--cache-persist-url': cachePersistUrl,
+    '--iepMap-persistance': iepMapPersistance,
+    '--iepSrc-persistance': iepSrcPersistance,
+    '--cache-entity-key': 'source',
     ...cache,
   },
   ...rest,

@@ -59,8 +59,10 @@ const worker = (ticket, conf) => {
     [
       `--ticket=${ticket}`,
       `--cache-lazy-load=true`,
-      `--cache-persist-url=${conf['cache-persist-url']}`,
-      `--iepMap-persistance=${conf['iepMap-persistance']}`,
+      `--cache-entity-key=${conf['cache-entity-key'] || 'source'}`,
+      conf['cache-persist-url']
+        ? `--cache-persist-url=${conf['cache-persist-url']}`
+        : '',
     ],
     {
       execArgv: [

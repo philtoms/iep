@@ -3,7 +3,7 @@ import { transformSource } from '../loader-hooks.mjs';
 
 import defaultTransformSource from 'defaultTransformSource?__fake';
 import resolver from '../../resolver/index.mjs?__fake';
-import cache, { IEP_STR } from 'iep-cache?__fake=./fakes/iep-cache.mjs';
+import cache from 'iep-cache?__fake=./fakes/iep-cache.mjs';
 
 test.serial('defer to default', async (t) => {
   await transformSource(
@@ -36,7 +36,7 @@ test.serial('resolve new source', async (t) => {
 
 test.serial('re-resolve cache busted source', async (t) => {
   cache('iepMap', { timestamp: 2 });
-  cache('iepSrc', { timestamp: 1, [IEP_STR]: 'cached source' });
+  cache('iepSrc', { timestamp: 1, 'cached source' });
 
   const { source } = await transformSource(
     'export default source',

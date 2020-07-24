@@ -1,10 +1,10 @@
 import path from 'path';
-import cache, { IEP_STR } from 'iep-cache';
+import cache from 'iep-cache';
 import resolver from '../resolver/index.mjs';
 import resolveImportMap from '../resolver/resolve-import-map.mjs';
 
-const iepMap = cache('iepMap', { 'iepMap-persistance': 'false' });
-const iepSrc = cache('iepSrc', { 'iepSrc-persistance': 'false' });
+const iepMap = cache('iepMap', { persistance: false });
+const iepSrc = cache('iepSrc', { persistance: false });
 
 const extractIEP = (specifier, protocol = '') => {
   const { pathname, searchParams } = new URL(protocol + specifier);
@@ -45,7 +45,7 @@ export async function getSource(url, context, defaultGetSource) {
     const cacheKey = `${ticket}.${pathname}`;
 
     const iep = await iepMap.get(ticket);
-    const { timestamp, [IEP_STR]: source } = await iepSrc.get(cacheKey);
+    const { timestamp, source } = await iepSrc.get(cacheKey);
     if (timestamp > iep.timestamp) {
       return {
         source,
@@ -72,7 +72,7 @@ export async function transformSource(source, context, defaultTransformSource) {
     }
 
     source = await resolver(source, pathname, iep.map, url);
-    iepSrc.set(cacheKey, { [IEP_STR]: source });
+    iepSrc.set(cacheKey, { source });
 
     return {
       source,

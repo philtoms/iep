@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { dirname } from 'path';
-import { IEP_STR } from 'iep-cache';
 import resolver from './resolver/index.mjs';
 import cookies from './cookies.mjs';
 
@@ -21,13 +20,13 @@ export default ({ iep: { clientEntry } }, filter, iepSrc) => {
       const cached = await iepSrc.get(cacheKey);
 
       if (cached.timestamp > iep.timestamp) {
-        return res.send(cached[IEP_STR]);
+        return res.send(cached.source);
       }
 
       const source = fs.readFileSync(pathname, 'utf8');
       resolver(source, pathname, iep.map).then((source) => {
         res.send(source);
-        iepSrc.set(cacheKey, { [IEP_STR]: source });
+        iepSrc.set(cacheKey, { source });
       });
     } catch (err) {
       err.message = `iep:import-map - ${err.message}`;

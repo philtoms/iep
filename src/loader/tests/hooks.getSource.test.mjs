@@ -3,7 +3,7 @@ import { getSource } from '../loader-hooks.mjs';
 
 import defaultGetSource from 'defaultGetSource?__fake=mock(url=>({source:"export default source"}))';
 
-import cache, { IEP_STR } from 'iep-cache?__fake=./fakes/iep-cache.mjs';
+import cache from 'iep-cache?__fake=./fakes/iep-cache.mjs';
 
 test.serial('defer to default', async (t) => {
   t.deepEqual(await getSource('fs', {}, defaultGetSource), {
@@ -14,7 +14,7 @@ test.serial('defer to default', async (t) => {
 
 test.serial('return cached', async (t) => {
   cache('iepMap', { timestamp: 1 });
-  cache('iepSrc', { timestamp: 2, [IEP_STR]: 'cached source' });
+  cache('iepSrc', { timestamp: 2, 'cached source' });
   const { source } = await getSource(
     'file:///xxx?__iep=tkt-1',
     {},
